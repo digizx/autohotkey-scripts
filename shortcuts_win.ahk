@@ -9,6 +9,13 @@ global LastWindowIndex := Map()
 CycleWindows(exeName, appCommand := "") {
     static LastWindowIndex := Map()
 
+    ; Get the currently focused window's exe name
+    focusedHwnd := WinExist("A")
+    focusedExe := ""
+    if (focusedHwnd) {
+        try focusedExe := WinGetProcessName(focusedHwnd)
+    }
+
     ; Retrieve all window handles for the executable
     windows := WinGetList("ahk_exe " . exeName)
     
@@ -53,6 +60,13 @@ CycleWindows(exeName, appCommand := "") {
     ; Get current index or default to 0
     lastIndex := LastWindowIndex.Has(exeName) ? LastWindowIndex[exeName] : 0
     
+    ; If current window is not from the same app, just activate the last used window
+    if (focusedExe != exeName) {
+        lastIndex := LastWindowIndex.Has(exeName) ? LastWindowIndex[exeName] : 1
+        WinActivate(formatted_hex_ids[lastIndex])
+        return
+    }
+
     ; Calculate next index
     nextIndex := Mod(lastIndex, sorted.Length) + 1
     
